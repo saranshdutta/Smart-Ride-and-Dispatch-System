@@ -13,6 +13,7 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 
@@ -28,7 +29,7 @@
   <header class="header">
     <div class="header-inner">
       <div class="logo">
-        <span class="logo-icon">🚗</span>
+        <span class="logo-icon"><i data-lucide="car-front"></i></span>
         <div>
           <span class="logo-title">Smart Dispatch</span>
           <span class="logo-sub">Ride Matching System</span>
@@ -47,7 +48,7 @@
     <!-- ── CONTROL PANEL ──────────────────────────────────────────────── -->
     <section class="card control-panel" aria-label="Simulation Controls">
       <div class="card-header">
-        <h2 class="card-title">⚙️ Simulation Controls</h2>
+        <h2 class="card-title"><i data-lucide="sliders"></i> Simulation Controls</h2>
         <span class="badge badge-algo" id="badgeAlgo">Greedy</span>
       </div>
 
@@ -82,13 +83,13 @@
 
       <div class="btn-row">
         <button id="btnSimulate" class="btn btn-primary" onclick="runSimulation()">
-          <span class="btn-icon">▶</span> Run Simulation
+          <span class="btn-icon"><i data-lucide="play"></i></span> Run Simulation
         </button>
         <button id="btnBenchmark" class="btn btn-secondary" onclick="runBenchmark()">
-          <span class="btn-icon">📊</span> Compare All
+          <span class="btn-icon"><i data-lucide="bar-chart-2"></i></span> Compare All
         </button>
         <button id="btnReset" class="btn btn-ghost" onclick="resetDashboard()">
-          <span class="btn-icon">↺</span> Reset
+          <span class="btn-icon"><i data-lucide="rotate-ccw"></i></span> Reset
         </button>
       </div>
 
@@ -100,28 +101,28 @@
     <!-- ── STAT CARDS ─────────────────────────────────────────────────── -->
     <section class="stat-row" aria-label="Key Metrics">
       <div class="stat-card" id="statMatches">
-        <div class="stat-icon">🔗</div>
+        <div class="stat-icon"><i data-lucide="link"></i></div>
         <div class="stat-body">
           <span class="stat-value" id="valMatches">—</span>
           <span class="stat-name">Total Matches</span>
         </div>
       </div>
       <div class="stat-card" id="statRate">
-        <div class="stat-icon">📈</div>
+        <div class="stat-icon"><i data-lucide="trending-up"></i></div>
         <div class="stat-body">
           <span class="stat-value" id="valRate">—</span>
           <span class="stat-name">Match Rate</span>
         </div>
       </div>
       <div class="stat-card" id="statTime">
-        <div class="stat-icon">⚡</div>
+        <div class="stat-icon"><i data-lucide="zap"></i></div>
         <div class="stat-body">
           <span class="stat-value" id="valTime">—</span>
           <span class="stat-name">Exec Time</span>
         </div>
       </div>
       <div class="stat-card" id="statDist">
-        <div class="stat-icon">📍</div>
+        <div class="stat-icon"><i data-lucide="map-pin"></i></div>
         <div class="stat-body">
           <span class="stat-value" id="valDist">—</span>
           <span class="stat-name">Avg Distance</span>
@@ -135,7 +136,7 @@
       <!-- MAP -->
       <section class="card map-card" aria-label="Dispatch Map">
         <div class="card-header">
-          <h2 class="card-title">🗺️ Dispatch Map</h2>
+          <h2 class="card-title"><i data-lucide="map"></i> Dispatch Map</h2>
           <div class="map-legend">
             <span class="legend-item"><span class="dot dot-driver"></span>Driver</span>
             <span class="legend-item"><span class="dot dot-passenger"></span>Passenger</span>
@@ -149,7 +150,7 @@
       <!-- ALGO INFO -->
       <section class="card algo-card" aria-label="Algorithm Details">
         <div class="card-header">
-          <h2 class="card-title">🧠 Algorithm Details</h2>
+          <h2 class="card-title"><i data-lucide="cpu"></i> Algorithm Details</h2>
         </div>
         <div id="algoInfo" class="algo-info">
           <div class="algo-placeholder">Select an algorithm and run a simulation to see complexity analysis.</div>
@@ -157,7 +158,7 @@
 
         <!-- Distance distribution chart -->
         <div class="card-header" style="margin-top:1.5rem;">
-          <h2 class="card-title">📐 Distance Distribution</h2>
+          <h2 class="card-title"><i data-lucide="ruler"></i> Distance Distribution</h2>
         </div>
         <div class="chart-wrap">
           <canvas id="distChart" aria-label="Distance distribution histogram"></canvas>
@@ -168,7 +169,7 @@
     <!-- ── BENCHMARK TABLE ────────────────────────────────────────────── -->
     <section class="card" id="benchmarkSection" aria-label="Benchmark Results" style="display:none;">
       <div class="card-header">
-        <h2 class="card-title">🏁 Algorithm Benchmark</h2>
+        <h2 class="card-title"><i data-lucide="flag"></i> Algorithm Benchmark</h2>
         <span class="badge badge-info">All 3 Algorithms</span>
       </div>
       <div class="table-wrap">
@@ -194,7 +195,7 @@
     <!-- ── TRIP LIST ──────────────────────────────────────────────────── -->
     <section class="card" id="tripSection" aria-label="Trip List" style="display:none;">
       <div class="card-header">
-        <h2 class="card-title">🚦 Matched Trips</h2>
+        <h2 class="card-title"><i data-lucide="route"></i> Matched Trips</h2>
         <span class="badge badge-success" id="tripCount">0 trips</span>
       </div>
       <div class="trip-list" id="tripList"></div>
@@ -203,7 +204,7 @@
   </main>
 
   <!-- ── TOAST ─────────────────────────────────────────────────────────── -->
-  <div id="toast" class="toast" role="alert" aria-live="polite"></div>
+  <div id="toast" class="toast flex-toast" role="alert" aria-live="polite"></div>
 
   <script src="/static/app.js"></script>
 </body>

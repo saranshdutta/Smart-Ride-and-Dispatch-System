@@ -21,7 +21,10 @@ document.addEventListener("DOMContentLoaded", () => {
   bindRangeInputs();
   bindAlgoSelect();
   checkApiStatus();
-  setInterval(checkApiStatus, 8000);
+  // Initialize icons for static HTML
+  if (window.lucide) {
+    lucide.createIcons();
+  }
 });
 
 function bindRangeInputs() {
@@ -69,7 +72,7 @@ function setApiStatus(online) {
 
 // ── Simulation ────────────────────────────────────────────────────────────
 async function runSimulation() {
-  if (!apiOnline) { showToast("⚠️  Backend is offline. Start the API first.", "error"); return; }
+  if (!apiOnline) { showToast('<i data-lucide="alert-triangle"></i> Backend is offline. Start the API first.', "error"); return; }
 
   const payload = {
     num_drivers:    parseInt(document.getElementById("numDrivers").value),
@@ -100,9 +103,9 @@ async function runSimulation() {
     renderTripList(data.trips);
 
     document.getElementById("benchmarkSection").style.display = "none";
-    showToast(`✅  ${data.metrics.total_matches} matches in ${data.metrics.execution_time_ms.toFixed(2)} ms`, "success");
+    showToast(`<i data-lucide="check-circle"></i> ${data.metrics.total_matches} matches in ${data.metrics.execution_time_ms.toFixed(2)} ms`, "success");
   } catch (err) {
-    showToast(`❌  ${err.message}`, "error");
+    showToast(`<i data-lucide="x-circle"></i> ${err.message}`, "error");
   } finally {
     setLoading(false);
   }
@@ -110,7 +113,7 @@ async function runSimulation() {
 
 // ── Benchmark ─────────────────────────────────────────────────────────────
 async function runBenchmark() {
-  if (!apiOnline) { showToast("⚠️  Backend is offline. Start the API first.", "error"); return; }
+  if (!apiOnline) { showToast('<i data-lucide="alert-triangle"></i> Backend is offline. Start the API first.', "error"); return; }
 
   const d = document.getElementById("numDrivers").value;
   const p = document.getElementById("numPassengers").value;
@@ -129,9 +132,9 @@ async function runBenchmark() {
 
     document.getElementById("benchmarkSection").style.display = "block";
     document.getElementById("benchmarkSection").scrollIntoView({ behavior: "smooth", block: "nearest" });
-    showToast("🏁  Benchmark complete!", "success");
+    showToast('<i data-lucide="flag"></i> Benchmark complete!', "success");
   } catch (err) {
-    showToast(`❌  ${err.message}`, "error");
+    showToast(`<i data-lucide="x-circle"></i> ${err.message}`, "error");
   } finally {
     setLoading(false);
   }
@@ -150,7 +153,7 @@ function resetDashboard() {
   if (distChart)  { distChart.destroy();  distChart  = null; }
   if (benchChart) { benchChart.destroy(); benchChart = null; }
   lastResult = null;
-  showToast("↺  Dashboard reset", "");
+  showToast('<i data-lucide="rotate-ccw"></i> Dashboard reset', "");
 }
 
 // ── Render: Stats ─────────────────────────────────────────────────────────
@@ -365,13 +368,14 @@ function renderTripList(trips) {
       <div class="trip-main">
         <span class="trip-id">#${t.id}</span>
         <span style="color:#6366f1;font-weight:600;">Driver ${t.driver_id}</span>
-        <span class="trip-arrow">→</span>
+        <span class="trip-arrow"><i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i></span>
         <span style="color:#a78bfa;font-weight:600;">Passenger ${t.passenger_id}</span>
       </div>
       <div class="trip-meta">${t.pickup_distance.toFixed(3)} km pickup · ${t.trip_distance.toFixed(3)} km trip</div>
     `;
     list.appendChild(item);
   });
+  if (window.lucide) lucide.createIcons();
 }
 
 // ── Render: Benchmark Table ────────────────────────────────────────────────
@@ -392,7 +396,7 @@ function renderBenchmarkTable(results) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${m.algorithm}</td>
-      <td class="${isWinner ? "bench-winner" : ""}">${m.execution_time_ms.toFixed(3)} ${isWinner ? "🏆" : ""}</td>
+      <td class="${isWinner ? "bench-winner" : ""}">${m.execution_time_ms.toFixed(3)} ${isWinner ? '<i data-lucide="award" style="width: 14px; height: 14px;"></i>' : ""}</td>
       <td>${m.total_matches} / ${m.total_passengers}</td>
       <td>${m.match_rate_pct}%</td>
       <td>${m.average_distance} km</td>
@@ -400,6 +404,7 @@ function renderBenchmarkTable(results) {
     `;
     tbody.appendChild(tr);
   });
+  if (window.lucide) lucide.createIcons();
 }
 
 // ── Render: Benchmark Chart ────────────────────────────────────────────────
@@ -464,18 +469,20 @@ function setLoading(state) {
   btn.disabled = state;
   bnc.disabled = state;
   if (state) {
-    btn.innerHTML = '<span class="btn-icon">⏳</span> Running…';
+    btn.innerHTML = '<span class="btn-icon"><i data-lucide="loader-2" class="spin-icon"></i></span> Running…';
   } else {
-    btn.innerHTML = '<span class="btn-icon">▶</span> Run Simulation';
+    btn.innerHTML = '<span class="btn-icon"><i data-lucide="play"></i></span> Run Simulation';
   }
+  if (window.lucide) lucide.createIcons();
 }
 
 // ── Toast ──────────────────────────────────────────────────────────────────
 let toastTimer = null;
 function showToast(msg, type = "") {
   const toast = document.getElementById("toast");
-  toast.textContent  = msg;
-  toast.className    = `toast ${type} show`;
+  toast.innerHTML    = `<div style="display:flex; align-items:center; gap:0.6rem;">${msg}</div>`;
+  toast.className    = `toast flex-toast ${type} show`;
+  if (window.lucide) lucide.createIcons();
   if (toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
     toast.classList.remove("show");

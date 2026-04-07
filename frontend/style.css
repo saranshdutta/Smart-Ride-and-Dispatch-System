@@ -3,24 +3,24 @@
    ───────────────────────────────────────────────────────────────────────── */
 
 :root {
-  --bg:          #080b14;
-  --bg-card:     #0e1221;
-  --bg-card-2:   #111827;
-  --border:      rgba(99, 131, 255, 0.14);
-  --border-h:    rgba(99, 131, 255, 0.35);
+  --bg:          #09090b;
+  --bg-card:     #18181b;
+  --bg-card-2:   #27272a;
+  --border:      rgba(255, 255, 255, 0.08);
+  --border-h:    rgba(255, 255, 255, 0.16);
 
   --primary:     #6366f1;
   --primary-h:   #818cf8;
   --primary-glow:rgba(99, 102, 241, 0.35);
-  --accent:      #22d3ee;
+  --accent:      #38bdf8;
   --accent-2:    #a78bfa;
-  --success:     #34d399;
+  --success:     #10b981;
   --warning:     #fbbf24;
-  --danger:      #f87171;
+  --danger:      #ef4444;
 
-  --text:        #f1f5f9;
+  --text:        #f8fafc;
   --text-muted:  #94a3b8;
-  --text-dim:    #475569;
+  --text-dim:    #52525b;
 
   --radius:      14px;
   --radius-sm:   8px;
@@ -32,7 +32,13 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; font-size: 16px; }
+
+/* SVG Icons Styles */
+.lucide { width: 1.2rem; height: 1.2rem; stroke-width: 1.75; vertical-align: middle; }
+.spin-icon { animation: spin 1.2s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
 
 body {
   font-family: var(--font-body);
@@ -80,8 +86,9 @@ body {
   padding: 0.9rem 2rem;
   display: flex; align-items: center; justify-content: space-between;
 }
-.logo { display: flex; align-items: center; gap: 0.75rem; }
-.logo-icon { font-size: 1.6rem; line-height: 1; }
+.logo { display: flex; align-items: center; gap: 0.85rem; }
+.logo-icon { display: flex; color: var(--primary-h); }
+.logo-icon .lucide { width: 1.8rem; height: 1.8rem; stroke-width: 2; }
 .logo-title {
   display: block; font-size: 1.1rem; font-weight: 700;
   background: linear-gradient(135deg, var(--primary-h), var(--accent));
@@ -126,8 +133,10 @@ body {
   margin-bottom: 1.25rem;
 }
 .card-title {
+  display: flex; align-items: center; gap: 0.5rem;
   font-size: 0.95rem; font-weight: 600; color: var(--text);
 }
+.card-title .lucide { color: var(--primary-h); }
 
 /* ── BADGES ──────────────────────────────────────────────────────────────── */
 .badge {
@@ -251,7 +260,8 @@ body {
   background: linear-gradient(135deg, rgba(99,102,241,0.05) 0%, transparent 60%);
 }
 .stat-card:hover { border-color: var(--border-h); transform: translateY(-2px); }
-.stat-icon { font-size: 1.75rem; flex-shrink: 0; }
+.stat-icon { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: var(--radius-sm); background: rgba(255,255,255,0.03); color: var(--primary-h); flex-shrink: 0; border: 1px solid var(--border); }
+.stat-icon .lucide { width: 22px; height: 22px; }
 .stat-body { display: flex; flex-direction: column; }
 .stat-value {
   font-size: 1.6rem; font-weight: 800; font-family: var(--font-mono);
@@ -259,7 +269,7 @@ body {
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   line-height: 1.1;
 }
-.stat-name { font-size: 0.72rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; margin-top: 0.2rem; }
+.stat-name { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; margin-top: 0.4rem; }
 
 /* ── TWO COL LAYOUT ──────────────────────────────────────────────────────── */
 .two-col {
@@ -366,11 +376,16 @@ body {
 .toast.success { border-color: var(--success); color: var(--success); }
 
 /* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .controls-grid { grid-template-columns: repeat(2, 1fr); }
+}
 @media (max-width: 640px) {
   .main { padding: 1rem 1rem 3rem; }
   .header-inner { padding: 0.75rem 1rem; }
+  .logo-title { font-size: 1rem; }
+  .logo-sub { display: none; }
   .stat-value { font-size: 1.25rem; }
   .controls-grid { grid-template-columns: 1fr; }
   .btn-row { flex-direction: column; }
-  .btn { justify-content: center; }
+  .btn { justify-content: center; width: 100%; }
 }
