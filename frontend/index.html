@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Dispatch — Ride Matching System</title>
+  <meta name="description"
+    content="Real-time ride-hailing simulation dashboard showcasing Greedy, Heap, and Dijkstra matching algorithms with live performance metrics." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+
+  <!-- ── BACKGROUND PARTICLES ─────────────────────────────────────────── -->
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="orb orb-1" aria-hidden="true"></div>
+  <div class="orb orb-2" aria-hidden="true"></div>
+  <div class="orb orb-3" aria-hidden="true"></div>
+
+  <!-- ── HEADER ─────────────────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🚗</span>
+        <div>
+          <span class="logo-title">Smart Dispatch</span>
+          <span class="logo-sub">Ride Matching System</span>
+        </div>
+      </div>
+      <div class="header-status">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-label" id="statusLabel">API Offline</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── MAIN ───────────────────────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- ── CONTROL PANEL ──────────────────────────────────────────────── -->
+    <section class="card control-panel" aria-label="Simulation Controls">
+      <div class="card-header">
+        <h2 class="card-title">⚙️ Simulation Controls</h2>
+        <span class="badge badge-algo" id="badgeAlgo">Greedy</span>
+      </div>
+
+      <div class="controls-grid">
+        <div class="control-group">
+          <label for="numDrivers" class="control-label">Drivers</label>
+          <div class="range-wrap">
+            <input type="range" id="numDrivers" min="5" max="100" value="20" class="range-input" />
+            <span class="range-val" id="numDriversVal">20</span>
+          </div>
+        </div>
+        <div class="control-group">
+          <label for="numPassengers" class="control-label">Passengers</label>
+          <div class="range-wrap">
+            <input type="range" id="numPassengers" min="5" max="80" value="15" class="range-input" />
+            <span class="range-val" id="numPassengersVal">15</span>
+          </div>
+        </div>
+        <div class="control-group">
+          <label for="algoSelect" class="control-label">Algorithm</label>
+          <select id="algoSelect" class="select-input">
+            <option value="greedy">Greedy — O(P × D)</option>
+            <option value="heap">Heap Queue — O((D+P) log D)</option>
+            <option value="dijkstra">Dijkstra — O(P·(V+E) log V)</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="seedInput" class="control-label">Random Seed</label>
+          <input type="number" id="seedInput" value="42" min="0" max="9999" class="number-input" />
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button id="btnSimulate" class="btn btn-primary" onclick="runSimulation()">
+          <span class="btn-icon">▶</span> Run Simulation
+        </button>
+        <button id="btnBenchmark" class="btn btn-secondary" onclick="runBenchmark()">
+          <span class="btn-icon">📊</span> Compare All
+        </button>
+        <button id="btnReset" class="btn btn-ghost" onclick="resetDashboard()">
+          <span class="btn-icon">↺</span> Reset
+        </button>
+      </div>
+
+      <div id="loadingBar" class="loading-bar hidden">
+        <div class="loading-fill"></div>
+      </div>
+    </section>
+
+    <!-- ── STAT CARDS ─────────────────────────────────────────────────── -->
+    <section class="stat-row" aria-label="Key Metrics">
+      <div class="stat-card" id="statMatches">
+        <div class="stat-icon">🔗</div>
+        <div class="stat-body">
+          <span class="stat-value" id="valMatches">—</span>
+          <span class="stat-name">Total Matches</span>
+        </div>
+      </div>
+      <div class="stat-card" id="statRate">
+        <div class="stat-icon">📈</div>
+        <div class="stat-body">
+          <span class="stat-value" id="valRate">—</span>
+          <span class="stat-name">Match Rate</span>
+        </div>
+      </div>
+      <div class="stat-card" id="statTime">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-body">
+          <span class="stat-value" id="valTime">—</span>
+          <span class="stat-name">Exec Time</span>
+        </div>
+      </div>
+      <div class="stat-card" id="statDist">
+        <div class="stat-icon">📍</div>
+        <div class="stat-body">
+          <span class="stat-value" id="valDist">—</span>
+          <span class="stat-name">Avg Distance</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── MAP + ALGO INFO ────────────────────────────────────────────── -->
+    <div class="two-col">
+
+      <!-- MAP -->
+      <section class="card map-card" aria-label="Dispatch Map">
+        <div class="card-header">
+          <h2 class="card-title">🗺️ Dispatch Map</h2>
+          <div class="map-legend">
+            <span class="legend-item"><span class="dot dot-driver"></span>Driver</span>
+            <span class="legend-item"><span class="dot dot-passenger"></span>Passenger</span>
+            <span class="legend-item"><span class="dot dot-match"></span>Matched</span>
+          </div>
+        </div>
+        <canvas id="mapCanvas" class="map-canvas" aria-label="Ride dispatch map visualization"></canvas>
+        <div class="map-empty-state" id="mapEmpty">Run a simulation to see the map</div>
+      </section>
+
+      <!-- ALGO INFO -->
+      <section class="card algo-card" aria-label="Algorithm Details">
+        <div class="card-header">
+          <h2 class="card-title">🧠 Algorithm Details</h2>
+        </div>
+        <div id="algoInfo" class="algo-info">
+          <div class="algo-placeholder">Select an algorithm and run a simulation to see complexity analysis.</div>
+        </div>
+
+        <!-- Distance distribution chart -->
+        <div class="card-header" style="margin-top:1.5rem;">
+          <h2 class="card-title">📐 Distance Distribution</h2>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="distChart" aria-label="Distance distribution histogram"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <!-- ── BENCHMARK TABLE ────────────────────────────────────────────── -->
+    <section class="card" id="benchmarkSection" aria-label="Benchmark Results" style="display:none;">
+      <div class="card-header">
+        <h2 class="card-title">🏁 Algorithm Benchmark</h2>
+        <span class="badge badge-info">All 3 Algorithms</span>
+      </div>
+      <div class="table-wrap">
+        <table class="bench-table" id="benchTable">
+          <thead>
+            <tr>
+              <th>Algorithm</th>
+              <th>Time (ms)</th>
+              <th>Matches</th>
+              <th>Match Rate</th>
+              <th>Avg Distance</th>
+              <th>Complexity</th>
+            </tr>
+          </thead>
+          <tbody id="benchBody"></tbody>
+        </table>
+      </div>
+      <div class="chart-wrap" style="max-height:260px;">
+        <canvas id="benchChart" aria-label="Benchmark comparison bar chart"></canvas>
+      </div>
+    </section>
+
+    <!-- ── TRIP LIST ──────────────────────────────────────────────────── -->
+    <section class="card" id="tripSection" aria-label="Trip List" style="display:none;">
+      <div class="card-header">
+        <h2 class="card-title">🚦 Matched Trips</h2>
+        <span class="badge badge-success" id="tripCount">0 trips</span>
+      </div>
+      <div class="trip-list" id="tripList"></div>
+    </section>
+
+  </main>
+
+  <!-- ── TOAST ─────────────────────────────────────────────────────────── -->
+  <div id="toast" class="toast" role="alert" aria-live="polite"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+
+</html>

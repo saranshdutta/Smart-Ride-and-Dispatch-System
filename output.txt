@@ -1,0 +1,34 @@
+
+🚗  Smart Dispatch System — Running 'heap' algorithm
+══════════════════════════════════════════════════════════════════════
+
+📍 Drivers     : 20
+📍 Passengers  : 15
+
+📋 TRIP MATCHES:
+  ✅  Driver 689179d3 ➜ Passenger e8b3b058  | Pickup: 8.963 km
+  ✅  Driver d70e425c ➜ Passenger d705d558  | Pickup: 3.004 km
+  ✅  Driver 8cb44487 ➜ Passenger cfb531a3  | Pickup: 4.981 km
+  ✅  Driver f4f21079 ➜ Passenger 01f6aeed  | Pickup: 4.620 km
+  ✅  Driver 291b60e3 ➜ Passenger a9a26cec  | Pickup: 5.089 km
+  ✅  Driver f5d153c3 ➜ Passenger 765e5135  | Pickup: 2.256 km
+  ✅  Driver 1d18458a ➜ Passenger d4b8f5a4  | Pickup: 10.811 km
+  ✅  Driver e9fd2042 ➜ Passenger 6a0cf1ee  | Pickup: 8.236 km
+  ✅  Driver 3a02ad7b ➜ Passenger 17f4bf85  | Pickup: 6.574 km
+  ✅  Driver 7b0e7c98 ➜ Passenger c5c161cb  | Pickup: 19.741 km
+  ✅  Driver d8c7c4bb ➜ Passenger 04471670  | Pickup: 7.802 km
+  ✅  Driver ca738433 ➜ Passenger 4083cfac  | Pickup: 5.258 km
+  ✅  Driver 54bde01f ➜ Passenger 2dbb5d37  | Pickup: 13.968 km
+  ✅  Driver 960ad24d ➜ Passenger 06f0cd6a  | Pickup: 10.758 km
+  ✅  Driver 257ad431 ➜ Passenger fff283d6  | Pickup: 23.032 km
+
+📊 PERFORMANCE METRICS:
+──────────────────────────────────────────────────────────────────────
+  Algorithm       : Heap Priority Queue
+  Execution Time  : 0.242 ms
+  Total Matches   : 15 / 15
+  Match Rate      : 100.0%
+  Avg Distance    : 9.0063 km
+  Min Distance    : 2.2564 km
+  Max Distance    : 23.0321 km
+──────────────────────────────────────────────────────────────────────
