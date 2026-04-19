@@ -14,6 +14,8 @@
     rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 
@@ -66,6 +68,16 @@
             <input type="range" id="numPassengers" min="5" max="80" value="15" class="range-input" />
             <span class="range-val" id="numPassengersVal">15</span>
           </div>
+        </div>
+        <div class="control-group">
+          <label for="locationSelect" class="control-label">Region (India)</label>
+          <select id="locationSelect" class="select-input">
+            <option value="delhi">Delhi NCR</option>
+            <option value="mumbai">Mumbai</option>
+            <option value="bangalore">Bengaluru</option>
+            <option value="chennai">Chennai</option>
+            <option value="kolkata">Kolkata</option>
+          </select>
         </div>
         <div class="control-group">
           <label for="algoSelect" class="control-label">Algorithm</label>
@@ -136,14 +148,18 @@
       <!-- MAP -->
       <section class="card map-card" aria-label="Dispatch Map">
         <div class="card-header">
-          <h2 class="card-title"><i data-lucide="map"></i> Dispatch Map</h2>
+          <h2 class="card-title">
+            <i data-lucide="map"></i> Dispatch Map
+            <span class="badge badge-info" id="mapLocationBadge" style="margin-left: 0.5rem; font-size: 0.75rem;">Delhi
+              NCR</span>
+          </h2>
           <div class="map-legend">
             <span class="legend-item"><span class="dot dot-driver"></span>Driver</span>
             <span class="legend-item"><span class="dot dot-passenger"></span>Passenger</span>
             <span class="legend-item"><span class="dot dot-match"></span>Matched</span>
           </div>
         </div>
-        <canvas id="mapCanvas" class="map-canvas" aria-label="Ride dispatch map visualization"></canvas>
+        <div id="mapContainer" class="map-container" aria-label="Ride dispatch map visualization"></div>
         <div class="map-empty-state" id="mapEmpty">Run a simulation to see the map</div>
       </section>
 

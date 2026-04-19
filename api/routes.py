@@ -95,6 +95,10 @@ async def run_benchmark(
     num_drivers: int = Query(default=30, ge=5, le=200),
     num_passengers: int = Query(default=20, ge=5, le=200),
     seed: int = Query(default=99),
+    lat_min: float = Query(default=28.40),
+    lat_max: float = Query(default=28.90),
+    lon_min: float = Query(default=77.00),
+    lon_max: float = Query(default=77.50),
 ):
     """
     Run all three algorithms on identical input and return a side-by-side
@@ -106,6 +110,10 @@ async def run_benchmark(
             num_drivers=num_drivers,
             num_passengers=num_passengers,
             algorithm=algo_key,
+            lat_min=lat_min,
+            lat_max=lat_max,
+            lon_min=lon_min,
+            lon_max=lon_max,
             seed=seed,
         )
         simulator = Simulator(config)

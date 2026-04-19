@@ -283,11 +283,44 @@ body {
 
 /* ── MAP ─────────────────────────────────────────────────────────────────── */
 .map-card { display: flex; flex-direction: column; }
-.map-canvas {
+.map-container {
   width: 100% !important; height: 340px !important;
   border-radius: var(--radius-sm);
   background: rgba(255,255,255,0.02);
   display: none;
+  z-index: 1;
+}
+.leaflet-popup-content-wrapper {
+  background: var(--bg-card) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+}
+.leaflet-popup-tip {
+  background: var(--bg-card) !important;
+}
+.leaflet-tooltip {
+  background: var(--bg-card-2) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+  font-family: var(--font-mono) !important;
+  font-weight: bold;
+}
+.leaflet-tooltip::before { border-top-color: var(--border) !important; }
+.marker-driver {
+  background: var(--primary-h);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--primary-h);
+  border: 2px solid var(--bg);
+}
+.marker-passenger {
+  background: var(--accent-2);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent-2);
+  border: 2px solid var(--bg);
 }
 .map-empty-state {
   height: 340px; display: flex; align-items: center; justify-content: center;

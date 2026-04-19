@@ -10,16 +10,27 @@ const ALGO_META = {
   dijkstra: { name: "Dijkstra Graph Routing",   time: "O(P·(V+E) log V)",   space: "O(V + E)",   color: "#a78bfa" },
 };
 
+const LOCATIONS = {
+  delhi: { lat_min: 28.40, lat_max: 28.90, lon_min: 77.00, lon_max: 77.50, name: "Delhi NCR" },
+  mumbai: { lat_min: 18.90, lat_max: 19.30, lon_min: 72.80, lon_max: 73.00, name: "Mumbai" },
+  bangalore: { lat_min: 12.80, lat_max: 13.10, lon_min: 77.50, lon_max: 77.70, name: "Bengaluru" },
+  chennai: { lat_min: 12.90, lat_max: 13.20, lon_min: 80.10, lon_max: 80.30, name: "Chennai" },
+  kolkata: { lat_min: 22.50, lat_max: 22.70, lon_min: 88.30, lon_max: 88.50, name: "Kolkata" },
+};
+
 // ── State ────────────────────────────────────────────────────────────────
 let distChart   = null;
 let benchChart  = null;
 let lastResult  = null;
 let apiOnline   = false;
+let lmap        = null;
+let mapLayerGroup = null;
 
 // ── Init ─────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   bindRangeInputs();
   bindAlgoSelect();
+  bindLocationSelect();
   checkApiStatus();
   // Initialize icons for static HTML
   if (window.lucide) {
@@ -42,6 +53,14 @@ function bindAlgoSelect() {
     const key  = e.target.value;
     const meta = ALGO_META[key] || {};
     document.getElementById("badgeAlgo").textContent = meta.name || key;
+  });
+}
+
+function bindLocationSelect() {
+  document.getElementById("locationSelect").addEventListener("change", e => {
+    const key = e.target.value;
+    const loc = LOCATIONS[key];
+    document.getElementById("mapLocationBadge").textContent = loc ? loc.name : "Location";
   });
 }
 
@@ -74,11 +93,18 @@ function setApiStatus(online) {
 async function runSimulation() {
   if (!apiOnline) { showToast('<i data-lucide="alert-triangle"></i> Backend is offline. Start the API first.', "error"); return; }
 
+  const locKey = document.getElementById("locationSelect").value;
+  const loc = LOCATIONS[locKey] || LOCATIONS.delhi;
+
   const payload = {
     num_drivers:    parseInt(document.getElementById("numDrivers").value),
     num_passengers: parseInt(document.getElementById("numPassengers").value),
     algorithm:      document.getElementById("algoSelect").value,
     seed:           parseInt(document.getElementById("seedInput").value) || 42,
+    lat_min:        loc.lat_min,
+    lat_max:        loc.lat_max,
+    lon_min:        loc.lon_min,
+    lon_max:        loc.lon_max,
   };
 
   setLoading(true);
@@ -119,10 +145,13 @@ async function runBenchmark() {
   const p = document.getElementById("numPassengers").value;
   const s = document.getElementById("seedInput").value || 42;
 
+  const locKey = document.getElementById("locationSelect").value;
+  const loc = LOCATIONS[locKey] || LOCATIONS.delhi;
+
   setLoading(true);
 
   try {
-    const url = `${API_BASE}/benchmark?num_drivers=${d}&num_passengers=${p}&seed=${s}`;
+    const url = `${API_BASE}/benchmark?num_drivers=${d}&num_passengers=${p}&seed=${s}&lat_min=${loc.lat_min}&lat_max=${loc.lat_max}&lon_min=${loc.lon_min}&lon_max=${loc.lon_max}`;
     const res = await fetch(url, { method: "POST" });
     if (!res.ok) throw new Error("Benchmark request failed");
     const data = await res.json();
@@ -145,8 +174,9 @@ function resetDashboard() {
   ["valMatches","valRate","valTime","valDist"].forEach(id => {
     document.getElementById(id).textContent = "—";
   });
-  document.getElementById("mapCanvas").style.display  = "none";
+  document.getElementById("mapContainer").style.display  = "none";
   document.getElementById("mapEmpty").style.display   = "flex";
+  if (lmap && mapLayerGroup) mapLayerGroup.clearLayers();
   document.getElementById("tripSection").style.display = "none";
   document.getElementById("benchmarkSection").style.display = "none";
   document.getElementById("algoInfo").innerHTML = `<div class="algo-placeholder">Select an algorithm and run a simulation to see complexity analysis.</div>`;
@@ -199,89 +229,79 @@ function renderAlgoInfo(algoKey, metrics) {
 
 // ── Render: Map ────────────────────────────────────────────────────────────
 function renderMap(drivers, passengers, trips) {
-  const canvas = document.getElementById("mapCanvas");
-  const empty  = document.getElementById("mapEmpty");
-  canvas.style.display = "block";
-  empty.style.display  = "none";
+  const container = document.getElementById("mapContainer");
+  const empty     = document.getElementById("mapEmpty");
+  container.style.display = "block";
+  empty.style.display     = "none";
 
-  const ctx = canvas.getContext("2d");
-  const W   = canvas.offsetWidth;
-  const H   = canvas.offsetHeight;
-  canvas.width  = W;
-  canvas.height = H;
+  if (!lmap) {
+    lmap = L.map('mapContainer', { zoomControl: false }).setView([20, 78], 5);
+    L.control.zoom({ position: 'bottomright' }).addTo(lmap);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(lmap);
+    mapLayerGroup = L.layerGroup().addTo(lmap);
 
-  const allLats = [...drivers.map(d => d.latitude),  ...passengers.map(p => p.pickup_lat)];
-  const allLons = [...drivers.map(d => d.longitude), ...passengers.map(p => p.pickup_lon)];
-  const minLat  = Math.min(...allLats), maxLat = Math.max(...allLats);
-  const minLon  = Math.min(...allLons), maxLon = Math.max(...allLons);
-  const pad     = 40;
-
-  const toX = lon => pad + ((lon - minLon) / (maxLon - minLon || 1)) * (W - 2 * pad);
-  const toY = lat => (H - pad) - ((lat - minLat) / (maxLat - minLat || 1)) * (H - 2 * pad);
-
-  // Background gradient
-  const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, "rgba(14,18,33,1)");
-  grad.addColorStop(1, "rgba(8,11,20,1)");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
-
-  // Grid lines
-  ctx.strokeStyle = "rgba(99,102,241,0.07)";
-  ctx.lineWidth   = 1;
-  for (let i = 0; i <= 6; i++) {
-    const x = pad + (i / 6) * (W - 2 * pad);
-    const y = pad + (i / 6) * (H - 2 * pad);
-    ctx.beginPath(); ctx.moveTo(x, pad);   ctx.lineTo(x, H - pad); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(pad, y);   ctx.lineTo(W - pad, y); ctx.stroke();
+    // Recompute sizes on next frame since container just became visible
+    setTimeout(() => lmap.invalidateSize(), 50);
+  } else {
+    mapLayerGroup.clearLayers();
   }
 
-  // Build matched sets
+  const bounds = [];
   const matchedDriverIds    = new Set(trips.map(t => t.driver_id));
   const matchedPassengerIds = new Set(trips.map(t => t.passenger_id));
 
-  // Draw match lines
-  const tripMap = {};
+  // Draw Polylines & Tooltips
   trips.forEach(t => {
     const d = drivers.find(x => x.id === t.driver_id);
     const p = passengers.find(x => x.id === t.passenger_id);
     if (d && p) {
-      ctx.beginPath();
-      ctx.moveTo(toX(d.longitude), toY(d.latitude));
-      ctx.lineTo(toX(p.pickup_lon), toY(p.pickup_lat));
-      ctx.strokeStyle = "rgba(52,211,153,0.35)";
-      ctx.lineWidth   = 1.5;
-      ctx.setLineDash([4, 4]);
-      ctx.stroke();
-      ctx.setLineDash([]);
+      const latlngs = [[d.latitude, d.longitude], [p.pickup_lat, p.pickup_lon]];
+      const polyline = L.polyline(latlngs, {
+        color: '#10b981', weight: 2, dashArray: '5, 6', opacity: 0.65
+      }).addTo(mapLayerGroup);
+      bounds.push(latlngs[0], latlngs[1]);
+
+      // Add distance tooltip at the center of the line
+      polyline.bindTooltip(`${t.pickup_distance.toFixed(2)} km`, {
+        permanent: true, direction: 'center', className: 'leaflet-tooltip'
+      });
     }
   });
 
-  // Draw drivers
+  // Drivers
+  const driverIconBase = L.divIcon({ className: 'marker-driver', iconSize: [12, 12] });
+  const driverIconMatc = L.divIcon({ className: 'marker-driver', iconSize: [16, 16], html: `<div style="background:#6366f1;width:100%;height:100%;border-radius:50%;box-shadow:0 0 10px #6366f1"></div>`});
   drivers.forEach(d => {
-    const x = toX(d.longitude), y = toY(d.latitude);
     const matched = matchedDriverIds.has(d.id);
-    ctx.beginPath();
-    ctx.arc(x, y, matched ? 6 : 4.5, 0, Math.PI * 2);
-    ctx.fillStyle   = matched ? "#6366f1" : "rgba(99,102,241,0.45)";
-    ctx.shadowColor = matched ? "#6366f1" : "transparent";
-    ctx.shadowBlur  = matched ? 10 : 0;
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    const m = L.marker([d.latitude, d.longitude], {
+      icon: matched ? driverIconMatc : driverIconBase,
+      opacity: matched ? 1.0 : 0.6
+    }).addTo(mapLayerGroup);
+    m.bindPopup(`<b>Driver #${d.id}</b>`);
+    bounds.push([d.latitude, d.longitude]);
   });
 
-  // Draw passengers
+  // Passengers
+  const passIconBase = L.divIcon({ className: 'marker-passenger', iconSize: [12, 12] });
+  const passIconMatc = L.divIcon({ className: 'marker-passenger', iconSize: [16, 16], html: `<div style="background:#a78bfa;width:100%;height:100%;border-radius:50%;box-shadow:0 0 10px #a78bfa"></div>`});
   passengers.forEach(p => {
-    const x = toX(p.pickup_lon), y = toY(p.pickup_lat);
     const matched = matchedPassengerIds.has(p.id);
-    ctx.beginPath();
-    ctx.arc(x, y, matched ? 6 : 4.5, 0, Math.PI * 2);
-    ctx.fillStyle   = matched ? "#a78bfa" : "rgba(167,139,250,0.4)";
-    ctx.shadowColor = matched ? "#a78bfa" : "transparent";
-    ctx.shadowBlur  = matched ? 10 : 0;
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    const m = L.marker([p.pickup_lat, p.pickup_lon], {
+      icon: matched ? passIconMatc : passIconBase,
+      opacity: matched ? 1.0 : 0.6
+    }).addTo(mapLayerGroup);
+    m.bindPopup(`<b>Passenger #${p.id}</b>`);
+    bounds.push([p.pickup_lat, p.pickup_lon]);
   });
+
+  // Fit bounds nicely
+  if (bounds.length > 0) {
+    lmap.fitBounds(L.latLngBounds(bounds), { padding: [50, 50], maxZoom: 15 });
+  }
 }
 
 // ── Render: Distance Distribution Chart ───────────────────────────────────
